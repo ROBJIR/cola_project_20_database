@@ -3,9 +3,7 @@
 #
 # cola_project_20_database
 #
-
 import sys
-
 # my librares
 from lib.lib_database import Database
 
