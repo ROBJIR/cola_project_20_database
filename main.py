@@ -38,10 +38,10 @@ try:
     #
     # sqlcommand = "SELECT name, id FROM author ORDER BY name"
     # print (f"command: {sqlcommand}")
-    print(f"*** Authors: {20*"*"}")
-    data = dbs.execute_sqlcommand("SELECT name, id FROM author ORDER BY name")
-    for row in data:
-        print(f"* {row["name"]} [{row["id"]}]")
+    # print(f"*** Authors: {20*"*"}")
+    # data = dbs.execute_sqlcommand("SELECT name, id FROM author ORDER BY name")
+    # for row in data:
+    #    print(f"* {row["name"]} [{row["id"]}]")
 
     dbs.close()
 

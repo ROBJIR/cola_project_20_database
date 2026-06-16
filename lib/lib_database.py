@@ -4,7 +4,7 @@
 # lib_database.lib
 #
 import sys
-
+import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import oracledb
@@ -57,6 +57,7 @@ class Database ():
             else:
                 self.cfg_connection = connection.lower()
             self.cfg_client_type = self.get_database_cfg("connections.cfg",self.cfg_connection,"client_type")
+            self.cfg_dns = self.get_database_cfg("connections.cfg", self.cfg_connection, "dns")
             self.cfg_host = self.get_database_cfg("connections.cfg",self.cfg_connection,"host")
             self.cfg_port = self.get_database_cfg("connections.cfg",self.cfg_connection,"port")
             self.cfg_database = self.get_database_cfg("connections.cfg",self.cfg_connection,"database")
@@ -65,7 +66,7 @@ class Database ():
             self.cfg_schema = self.get_database_cfg("connections.cfg",self.cfg_connection,"schema")
 
             # select connector according to database type
-            self.info_database_details = f"client type={self.cfg_client_type}\nhost:port={self.cfg_host}:{self.cfg_port}\ndatabase={self.cfg_database}\nuser={self.cfg_user} / pwd=***"
+            self.info_database_details = f"client type={self.cfg_client_type}\ndns={self.cfg_dns}\nhost:port={self.cfg_host}:{self.cfg_port}\ndatabase={self.cfg_database}\nuser={self.cfg_user} / pwd=***"
 
             match self.cfg_client_type:
                 case "postgresql":
@@ -86,16 +87,46 @@ class Database ():
                     self.dbadm_syslog_table_name = self.get_database_cfg("databases.cfg", "oracle", "dbadm_syslog_table_name")
 
                     # set Thin or thick mode for client
-                    if self.get_database_cfg("databases.cfg",self.cfg_client_type,"lib_dir") != "":
-                        oracledb.init_oracle_client(lib_dir=self.get_database_cfg("databases.cfg",self.cfg_client_type,"lib_dir"))
+                    if self.get_database_cfg("databases.cfg",self.cfg_client_type,"client_lib_dir") != "":
+                        # set os variables TNS_ADMIN --must be set before activating the client
+                        if self.get_database_cfg("databases.cfg", self.cfg_client_type, "client_tns_admin") != "":
+                            os.environ["TNS_ADMIN"] = self.get_database_cfg("databases.cfg", self.cfg_client_type,"client_tns_admin")
+                        # activate Thin or thick mode
+                        print("0000")
+                        print (self.get_database_cfg("databases.cfg",self.cfg_client_type,"client_lib_dir"))
+                        print("0000")
+                        oracledb.init_oracle_client(client_lib_dir=self.get_database_cfg("databases.cfg",self.cfg_client_type,"client_lib_dir"))
 
-                    db_conn = oracledb.connect(
-                        host=self.cfg_host,
-                        port=self.cfg_port,
-                        service_name=self.cfg_database,
-                        user = self.cfg_user,
-                        password = self.cfg_password
-                    )
+                        if self.cfg_dns == "":
+
+                            # Thick Mode without
+                            db_conn = oracledb.connect(
+                                host=self.cfg_host,
+                                port=self.cfg_port,
+                                service_name=self.cfg_database,
+                                user=self.cfg_user,
+                                password=self.cfg_password
+                            )
+
+                        else:
+
+                            # Thick Mode with dns
+                            db_conn = oracledb.connect(
+                                dns=self.cfg_dns,
+                                user=self.cfg_user,
+                                password=self.cfg_password
+                            )
+
+                    else:
+
+                        # Thin Mode
+                        db_conn = oracledb.connect(
+                            host=self.cfg_host,
+                            port=self.cfg_port,
+                            service_name=self.cfg_database,
+                            user = self.cfg_user,
+                            password = self.cfg_password
+                        )
                     # write ditails about datababse, database client ... into  self.info_database_details
                     if oracledb.is_thin_mode():
                         self.info_database_details = self.info_database_details+f"\nthin client version: {oracledb.__version__}"
@@ -121,7 +152,6 @@ class Database ():
             return db_conn
 
         except Exception as err:
-            print(f"\n-> {self.cfg_database} - [71] - connection error: {err}\n")
             self.error_message(modul="connect",errorno=71,err=err)
 
 
