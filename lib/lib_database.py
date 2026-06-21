@@ -11,6 +11,15 @@ from configparser import ConfigParser
 
 class Database ():
     def __init__(self):
+        self.cfg_connection = ""
+        self.cfg_client_type = ""
+        self.cfg_dsn = ""
+        self.cfg_host = ""
+        self.cfg_port = ""
+        self.cfg_database = ""
+        self.cfg_user = ""
+        self.cfg_password = ""
+        self.cfg_schema = ""
         self.dbadm_logging_sysinfo = self.get_database_cfg("databases.cfg","logging","logging_sysinfo").lower() == "true"
         self.dbadm_logging_sqlcommand = self.get_database_cfg( "databases.cfg","logging","logging_sqlcommand").lower() == "true"
         self.dbadm_syslog_table_name = ""
@@ -22,13 +31,14 @@ class Database ():
         self.info_database_version = ""
 
     # loading values from the configuration file
-    def error_message(self,modul: str= "??", errorno: int = 0, err: str="", type: str = "error", output: str="scr", sysexit: bool=True, dbsname: str = "??"):
+    def error_message(self,modul: str= "?", errorno: int = 0, err: Exception, type: str = "error", output: str="scr", sysexit: bool=True, dbsname: str = "??"):
 
-        dbsname = getattr(self, "cfg_database", "??")
+        dbsname = getattr(self, "cfg_database", "?")
 
         if self.info_current_database:
             dbsname=self.info_current_database
 
+        # logging.error(f"{dbsname} - {type} [{errorno}] - {modul} -  {err}")
 
         if "scr" in output.lower():
             print(f"\n-> {dbsname} - {type} [{errorno}] - {modul} -  {err}\n")

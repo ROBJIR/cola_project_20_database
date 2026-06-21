@@ -6,6 +6,13 @@
 import sys
 # my librares
 from lib.lib_database import Database
+# from lib.lib_compare_data import CompareTables
+
+logging.basicConfig(
+    filename='log/database.log',
+    level=logging.ERROR,
+    format='%(asctime)s %(levelname)s: %(message)s'
+)
 
 # main body
 try:
@@ -27,7 +34,7 @@ try:
     # dbs.connect('ora26free')
     # dbs.connect('alb_ora_mon2db')
 
-    dbs.connect()
+    dbs.connect("")
     dbs.dbadm_database_info_show()
     # dbs.close()
     #
@@ -37,9 +44,9 @@ try:
     # sqlcommand = "SELECT name, id FROM author ORDER BY name"
     # print (f"command: {sqlcommand}")
     # print(f"*** Authors: {20*"*"}")
-    # data = dbs.execute_sqlcommand("SELECT name, id FROM author ORDER BY name")
-    # for row in data:
-    #    print(f"* {row["name"]} [{row["id"]}]")
+    data = dbs.execute_sqlcommand("SELECT name, id FROM author ORDER BY name")
+    for row in data:
+       print(f"* {row["name"]} [{row["id"]}]")
 
     dbs.close()
 
