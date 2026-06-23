@@ -57,7 +57,8 @@ CREATE TABLE dbadm.sys_log (
 	user_name varchar(126) NULL,
 	schema_name varchar(126) NULL,
 	modul_code varchar(126) NULL,
-	"parameter" varchar(4000) NULL,
+    message varchar(4000) NULL,
+	parameters varchar(4000) NULL,
 	step_code varchar(126) NULL,
 	status_code varchar(48) DEFAULT 'SUCCESS'::character varying NULL,
 	sql_command text NULL,
@@ -77,3 +78,29 @@ SELECT current_database() as current_database,
        pg_backend_pid() as sid;
 
 
+CREATE TABLE alpha.mountain_8000 (
+    ranking         INTEGER NOT NULL UNIQUE,
+    mountain_name   VARCHAR(100) NOT NULL,
+    elevation_meters INTEGER NOT NULL,
+    mountain_range  VARCHAR(100) NOT NULL,
+    countries       VARCHAR(100) NOT NULL,
+    id              SERIAL PRIMARY KEY
+);
+
+INSERT INTO alpha.mountain_8000
+(ranking, mountain_name, elevation_meters, mountain_range, countries)
+VALUES
+(1,  'Mount Everest', 8848, 'Himalaya', 'Nepal/China'),
+(2,  'K2', 8611, 'Karakoram', 'Pakistan/China'),
+(3,  'Kangchenjunga', 8586, 'Himalaya', 'Nepal/India'),
+(4,  'Lhotse', 8516, 'Himalaya', 'Nepal/China'),
+(5,  'Makalu', 8485, 'Himalaya', 'Nepal/China'),
+(6,  'Cho Oyu', 8188, 'Himalaya', 'Nepal/China'),
+(7,  'Dhaulagiri I', 8167, 'Himalaya', 'Nepal'),
+(8,  'Manaslu', 8163, 'Himalaya', 'Nepal'),
+(9,  'Nanga Parbat', 8126, 'Himalaya', 'Pakistan'),
+(10, 'Annapurna I', 8091, 'Himalaya', 'Nepal'),
+(11, 'Gasherbrum I', 8080, 'Karakoram', 'Pakistan/China'),
+(12, 'Broad Peak', 8051, 'Karakoram', 'Pakistan/China'),
+(13, 'Gasherbrum II', 8035, 'Karakoram', 'Pakistan/China'),
+(14, 'Shishapangma', 8027, 'Himalaya', 'China');

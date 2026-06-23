@@ -4,57 +4,31 @@
 # cola_project_20_database
 #
 import sys
+from configparser import ConfigParser
 # my librares
-from lib.lib_database import Database
+from lib.lib_config_file import ConfigurationFile
+from lib.lib_database_20 import *
+from lib.lib_log import *
 # from lib.lib_compare_data import CompareTables
-
-logging.basicConfig(
-    filename='log/database.log',
-    level=logging.ERROR,
-    format='%(asctime)s %(levelname)s: %(message)s'
-)
 
 # main body
 try:
+
     print(f"{92 * "="}")
-    #
+
     dbs = Database()
-    # dbs.connect()
+    # dbs.sys_attribute_show()
+    dbs.connect()
+    dbs.sys_database_info_show(True)
+    # dbs.dbadm_database_info_show("show")
 
-    # _ALL databases_
-    # dbs.connect("cassiopeia")
-    # dbs.connect("library_db")
-    # dbs.connect('ora26free')
-    # dbs.connect('alb_ora_mon2db')
-
-    # postgreSQL databases:
-    # dbs.connect("cassiopeia")
-    # dbs.connect("library_db")
-    # Oracle Datababse
-    # dbs.connect('ora26free')
-    # dbs.connect('alb_ora_mon2db')
-
-    dbs.connect("")
-    dbs.dbadm_database_info_show()
+    #data = dbs.execute_sqlcommand("SELECT ranking, mountain_name, elevation_meters, mountain_range, countries FROM alpha.mountain_8000 ORDER BY ranking")
+    #for row in data:
+    #    print(f"{row["ranking"]}/ {row["mountain_name"]} - {row["elevation_meters"]}m.n.m - mountains {row["mountain_range"]} in country {row["countries"]}")
+    #
     # dbs.close()
-    #
-    # ... tady muzeme neco delat s databazi ...
-    #
-    #
-    # sqlcommand = "SELECT name, id FROM author ORDER BY name"
-    # print (f"command: {sqlcommand}")
-    # print(f"*** Authors: {20*"*"}")
-    data = dbs.execute_sqlcommand("SELECT name, id FROM author ORDER BY name")
-    for row in data:
-       print(f"* {row["name"]} [{row["id"]}]")
-
+    dbs.sys_attribute_show()
     dbs.close()
-
-    #ora = database()
-    #ora.connect('ora26free')
-    #ora.dbadm_database_info_show()
-    #ora.close()
-    #
     print(f"{92*"="}")
 
 except Exception as err:
