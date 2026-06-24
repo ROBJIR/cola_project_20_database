@@ -61,28 +61,51 @@ class Database ():
         self.dbadm_select_current_schema = ""
         self.dbadm_alter_session_set_current_schema = ""
 
-    def error_message(self, modul: str = "", errno: int=0 ,err: str = "", sysexit: bool = True, screen: bool = True, logfile: bool = True, dblog: bool = True, parameters: str = "", sql_command = ""):
-        errmsg=f"{self.current_database}: {modul} [{str(errno)}] - {str(err)}"
+    def sys_error(self, modul: str = "", message: str = "", errno: int=0 ,err: str = "", dblog: bool = True, logfile: bool = True, screen: bool = True, sysexit: bool = True, parameters: str = "", sqlcommand : str =""):
+        msg=f"{self.current_database}: {modul} [{str(errno)}] - {str(err)}"
+
+        if screen or sysexit:
+            print (f"\n{msg}\n")
+
+        if not message:
+            msg = f"{msg}\n{message}"
+        if not parameters:
+            msg = f"{msg}\n--- parameters ----------------------------------\n{parameters}"
+        if not sqlcommand:
+            msg = f"{msg}\n--- sqlcommand ----------------------------------\n{sqlcommand}"
+
         if logfile:
-            self.database_logfile.error(f"{errmsg}")
+            self.database_logfile.error(f"{msg}")
 
         if dblog and self.dbadm_logging_sysinfo:
-            self.sys_dbadm_log(modul, "",  parameters, "", "ERROR" , sql_command, errno, err, True)
-        if screen or sysexit:
-            print (f"\n{errmsg}\n")
+            self.sys_dbadm_log(modul, message,  parameters, "---", "ERROR", sqlcommand, errno, err)
+
         if sysexit:
             sys.exit(errno)
-        return errmsg
 
-    def info_message(self, modul: str = "", message: str = "", screen: bool = False, logfile: bool = True, dblog: bool = True, parameters: str = "", sql_command = ""):
-        infomsg=f"{self.current_database}: {modul} - {str(message)}"
-        if logfile:
-            self.database_logfile.info(f"{infomsg}")
-        if dblog and self.dbadm_logging_sysinfo:
-            self.sys_dbadm_log(modul, message, parameters, "", "INFO" , sql_command)
+        return msg
+
+    def sys_info(self, modul: str = "", message: str = "", dblog: bool = True, logfile: bool = True, screen: bool = False, parameters: str = "", sqlcommand  : str =""):
+        msg = f"{self.current_database}: {modul} "
+
         if screen:
-            print (f"\n{infomsg}\n")
-        return infomsg
+            print(f"\n{msg}\n")
+
+        if message:
+            msg = f"{msg} - {message}"
+        if parameters:
+            msg = f"{msg}\n--- parameters ----------------------------------\n{parameters}"
+        if sqlcommand:
+            msg = f"{msg}\n--- sqlcommand ----------------------------------\n{sqlcommand}"
+
+        if logfile:
+            self.database_logfile.info(f"{msg}")
+
+        if dblog and self.dbadm_logging_sysinfo:
+            self.sys_dbadm_log(modul, message, parameters, "---", "INFO", sqlcommand)
+
+        return msg
+
 
     def connect(self, connection: str = ""):
         try:
@@ -112,10 +135,12 @@ class Database ():
                 case "oracle":
                     self.connect_oracle()
                 case _:
-                    self.error_message("database.connect", 77, f"database {self.current_database_model} is not supported!")
+                    self.sys_error("database.connect", f"database {self.current_database_model} is not supported!", 74, "", False)
+
             self.sys_database_info_get()
-            self.info_message("database.connect", f"connected to {self.database_name} database")
-            self.info_message("database.connect", f"------------- connection details -------------\n{self.current_database_detail}")
+            self.current_database_detail = f"{self.current_database_detail}\nsession ID = {self.session_id}"
+            self.sys_info("database.connect", f"connected to {self.database_name} database")
+            self.sys_info("database.connect", f"connection details\n{self.current_database_detail}")
 
             if self.database_schema:
                 self.schema_set(self.database_schema)
@@ -123,7 +148,7 @@ class Database ():
 
             return True
         except Exception as err:
-            self.error_message("database.connect",78,err,True, True, True, False)
+            self.sys_error("database.connect", f"connected to {self.database_name} database", 75, err, False)
 
     def connect_postgresql(self):
         try:
@@ -138,7 +163,8 @@ class Database ():
             self.current_database_detail = f"{self.current_database_detail}\nhost:port = {self.database_host}:{self.database_port}\ndatabase_name = {self.database_name}\nusername = {self.database_user_username}"
 
         except Exception as err:
-            self.error_message("database.connect_postgresql", 76, err, True, True, True, False)
+            self.sys_error("database.connect_postgresql", "",76, err, False)
+
 
     def connect_oracle(self):
         try:
@@ -179,11 +205,11 @@ class Database ():
                 self.current_database_detail = f"{self.current_database_detail}\nhost:port = {self.database_host}:{self.database_port}\nservice_name = {self.database_name}\nusername = {self.database_user_username}"
 
         except Exception as err:
-            self.error_message("database.connect_oracle",75,err)
+            self.sys_error("database.connect_oracle", "",77, err, False)
 
-    def close(self, connection: str = ""):
+    def close(self):
         try:
-            self.info_message("database.close", f"close database {self.database_name}")
+            self.sys_info("database.close", f"close database {self.database_name}")
             self.conn.close()
 
             self.client_islocal = False
@@ -213,7 +239,7 @@ class Database ():
 
             return True
         except Exception as err:
-            self.error_message("database.close",79,err)
+            self.sys_error("database.close", "", 78, err)
 
         return True
 
@@ -232,12 +258,12 @@ class Database ():
             self.conn.commit()
             cur.close()
 
-            self.info_message("database.schema_set", f"{sqlcommand}")
+            self.sys_info("database.schema_set", f"{sqlcommand}")
 
             return True
 
         except Exception as err:
-            self.error_message("database.schema_set", 74, err)
+            self.sys_error("database.schema_set", "", 72, err)
 
     def schema_get(self):
         try:
@@ -248,7 +274,7 @@ class Database ():
             return schema
 
         except Exception as err:
-            self.error_message("database.schema_get", 73, err)
+            self.sys_error("database.schema_get", "", 73, err)
 
     def sys_logging_set(self,status: bool = True, type: str = "sqlcommand"):
         try:
@@ -259,11 +285,13 @@ class Database ():
                     self.dbadm_logging_sysinfo = status
                 case _:
                     pass
-            self.info_message("database.sys_logging_set", f"set: type={type}, status={str(status)} - settings: for execote_command={str(self.dbadm_logging_sqlcommand)}, for sysinfo={str(self.dbadm_logging_sysinfo)}")
+
+            self.sys_info("database.sys_logging_set",f"set: type={type}, status={str(status)} - settings: for execote_command={str(self.dbadm_logging_sqlcommand)}, for sysinfo={str(self.dbadm_logging_sysinfo)}")
+
             return True
 
         except Exception as err:
-            self.error_message("database.sys_logging_set", 71, err)
+            self.sys_error("database.sys_logging_set", "", 71, err, False)
 
     def sys_database_info_get(self):
         try:
@@ -275,7 +303,7 @@ class Database ():
                 self.session_id = row["sid"]
 
         except Exception as err:
-            self.error_message("database.sys_database_info_get", 72, err)
+            self.sys_error("database.sys_database_info_get", "", 79, err)
 
     def sys_database_info_show(self, screen: bool = False):
         ili = {"version": f"{self.current_database_version}", "database": f"{self.current_database}",
@@ -297,22 +325,22 @@ class Database ():
         print(f"--- end ----------------------------------------")
         return True
 
-    def sys_dbadm_log(self,modul: str = "", message: str = "", parameters: str = "", step: str = "", status_code: str = "SUCCESS", sqlcommand: str = "", error_number: int = 0, error_message: str = "" , islogging: bool = True):
+    def sys_dbadm_log(self,modul: str = "", message: str = "", parameters: str = "", step: str = "", status_code: str = "INFO", sqlcommand: str = "", error_number: int = 0, error_message: str = "" , islogging: bool = True):
         try:
             if self.dbadm_logging_sysinfo and islogging:
-                str_err_message = str(error_message)
-                str_message = str(message)
-                str_err_message = str(str_err_message).replace("'", "''")
+                str_message = str(message).replace("'", "''")
+                str_error_message = str(error_message).replace("'", "''")
                 str_err_sqlcommand = str(sqlcommand).replace("'", "''")
+                str_error_number = str(error_number).replace("0", "")
                 sqlcommlog = f"""
-                            INSERT INTO {self.dbadm_syslog_table}
-                            (database_type,database_name,sid,user_name,schema_name,modul_code,message,parameters,step_code
-                            ,status_code,sql_command,error_number,error_message)
-                            VALUES
-                            ('{self.current_database_model}','{self.current_database}','{self.session_id}','{self.current_user_username}','{self.current_schema}','{modul}','{str_message}','{parameters}','{step}'
-                            ,'{status_code}','{str_err_sqlcommand}',{error_number},'{str_err_message}')
-                            """
-                print(f"{sqlcommlog}")
+                    INSERT INTO {self.dbadm_syslog_table}
+                    (database_type,database_name,sid,user_name,schema_name,modul_code,message,parameters,step_code
+                    ,status_code,sql_command,error_number,error_message)
+                    VALUES
+                    ('{self.current_database_model}','{self.current_database}','{self.session_id}','{self.current_user_username}','{self.current_schema}','{modul}','{str_message}','{parameters}','{step}'
+                    ,'{status_code}','{str_err_sqlcommand}','{str_error_number}','{str_error_message}')
+                    """
+                sqlcommlog = sqlcommlog.replace(",''", ",null")
                 cur_log = self.conn.cursor()
                 cur_log.execute(sqlcommlog)
                 cur_log.close()
@@ -320,12 +348,13 @@ class Database ():
             return True
 
         except Exception as err:
-            # self.error_message("database.sys_dbadm_log", 80, err, True, True, False, False)
-            print(f"ERROR: database.sys_dbadm_log [80] - {err}")
+            print(f"{68*"*"}\nERROR: database.sys_dbadm_log [80] - {err}\n-- sqlcommand ----------------------------------\n{sqlcommlog}'\n{68*"*"}")
             sys.exit(80)
 
     def execute_sqlcommand(self,sqlcommand: str, iscommit: bool = True, logging: str = "auto"):
         try:
+
+
             data = None
             """ only for PostgreSQL
             with self.conn.cursor(cursor_factory=RealDictCursor) as cur_sqlcommand:
@@ -335,15 +364,14 @@ class Database ():
             self.conn.commit()
             """
 
-            self.info_message("database.execute_sqlcommand",
-                              f"{sqlcommand[:68] + ("..." if len(sqlcommand) > 68 else "")}", False, True, True,
-                              f"is commit: {str(iscommit).lower()} / is logging: {logging.lower()}", sqlcommand)
+            finalcommit=iscommit
+
             cur = self.conn.cursor()
             cur.execute(sqlcommand)
 
             if sqlcommand.lower().split()[0] == "select":
 
-                iscommit=False
+                finalcommit=False
 
                 columns = [col[0].lower() for col in cur.description]
 
@@ -354,18 +382,21 @@ class Database ():
 
             cur.close()
 
-            if iscommit:
+            if finalcommit:
                 self.conn.commit()
 
+            sqlparameters=f"commit/finalcommit is {str(iscommit).lower()}/{str(finalcommit).lower()} - logging is {logging.lower()} - set dbadm_logging_sqlcommand is {str(self.dbadm_logging_sqlcommand)}"
+            sqlcommand69=f"{sqlcommand[:69] + ("..." if len(sqlcommand) > 69 else "")}"
+
             if (logging.lower()=="yes" or (logging.lower()=="auto" and self.dbadm_logging_sqlcommand)):
-                self.info_message("database.execute_sqlcommand", f"{sqlcommand[:68] + ("..." if len(sqlcommand) > 68 else "")}", False, True, True, f"is commit: {str(iscommit).lower()} / is logging: {logging.lower()}", sqlcommand)
+                self.sys_info("database.execute_sqlcommand", sqlcommand69, True, True, False, sqlparameters, sqlcommand)
 
             return data
 
         except Exception as err:
             cur.close()
             self.conn.rollback()
-            self.error_message("database.execute_sqlcommand", 70, err, True, True, True, f"is commit: {str(iscommit).lower()} / is logging: {logging.lower()}", sqlcommand)
+            self.sys_error("database.execute_sqlcommand", sqlcommand69, 70, err, False, True, True, True, sqlparameters, sqlcommand)
 
 
 
