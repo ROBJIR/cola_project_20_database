@@ -194,3 +194,13 @@ username = cassiopeia
 session ID = 3291
 2026-06-23 21:59:43,066 INFO: cassiopeiadb: database.schema_set  - SET search_path TO dbadm
 2026-06-23 21:59:43,068 INFO: cassiopeiadb: database.close  - close database cassiopeiadb
+2026-06-24 20:14:52,912 INFO: cassiopeiadb: database.connect  - connected to cassiopeiadb database
+2026-06-24 20:14:52,912 INFO: cassiopeiadb: database.connect  - connection details
+database_connection = cassiopeia
+database = postgresql
+host:port = 192.168.56.1:5432
+database_name = cassiopeiadb
+username = cassiopeia
+session ID = 3215
+2026-06-24 20:14:52,914 INFO: cassiopeiadb: database.schema_set  - SET search_path TO dbadm
+2026-06-24 20:14:52,952 INFO: cassiopeiadb: database.close  - close database cassiopeiadb
